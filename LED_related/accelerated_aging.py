@@ -14,7 +14,7 @@ def aging_scale(old_lum, new_lum, old_life, slope):
     newlife=old_life*(old_lum/new_lum)**slope
     return newlife
 
-newlife=aging_scale(625, 1000, 22, 1.8)
+newlife=aging_scale(500, 1000, 0.1, 1.8)
 print(newlife)
 
 # newlife=aging_scale(545, 1000, 0.61, 1.6)
