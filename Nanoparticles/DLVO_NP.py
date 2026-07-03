@@ -21,7 +21,7 @@ sns.set_style("white")
 sns.set_style("ticks")
 sns.set_palette("rocket",4)
 
-A_Au=1.6
+A_Au=0.25
 e=1.602*10**-19
 eps_0=8.854*10**-12
 kb=1.381*10**-23
@@ -72,21 +72,21 @@ def U_total_sr(R,z1,z2,eps,nb,phi_s,T,A,r):
     Uel=U_elect_as(R,z1,z2,eps,nb,phi_s,T,r)
     Udisp=U_VDW_genmod(A,R,R,r)
     U_sr = U_correction1(370, 0.01, 0, r)
-    U=Uel *1 + Udisp/(kb*T) *1 + U_sr *(R/2.5)
+    U=Uel *1 + Udisp/(kb*T) *1 + U_sr *(R/2.5)*0.3
     return U
 
 #Plotting    
 xvals=np.linspace(0.02,10,10000)
 
-plt.figure(figsize=[5,5])
+plt.figure(figsize=[4,4])
 
 legend=[]
 
 # conc_list=[5]
-size_list=[2,2.5,3, 3.5]
+size_list=[2,3,4, 5]
 conc_list=np.asarray([40,75,100, 150])/1000
 
-cond_list=[[50,172],[100,172],[150,172],[200,172]]
+cond_list=[[50,172],[100,],[150,172],[200,172]]
 cond_list=[[50,172],[50,160],[50,150],[50,140]]
 
 #for i in cond_list:
@@ -98,17 +98,17 @@ for i in size_list:
 
 for i in size_list:
     size=i
-    yvals=U_total_sr(i,1,3,172,50/1000,.3,298,A_Au,xvals)
+    yvals=U_total_sr(i,1,3,8,50/1000,.3,298,A_Au,xvals)
     plt.plot(xvals,yvals)
-    plt.legend(legend, fontsize=12, loc="lower right")
+    plt.legend(legend, fontsize=12, loc="lower right", frameon=False)
 
 
-plt.axhline(-4, linestyle="--",linewidth=1, alpha=0.5)
-plt.axvline(0.3, linestyle="--",linewidth=1, alpha=0.5)
+# plt.axhline(-4, linestyle="--",linewidth=1, alpha=0.5)
+# plt.axvline(0.3, linestyle="--",linewidth=1, alpha=0.5)
 
 
 plt.xlim(0,5)
-plt.ylim(-10,3)
+plt.ylim(-5,5)
 
 
 
