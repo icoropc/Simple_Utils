@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import colour
+from spectrum_to_XY import spectrum_to_XY
 
 # ---------------------------------------------------------------------------
 # Gaussian component definitions: (relative amplitude, FWHM [nm], peak [nm])
@@ -130,6 +131,8 @@ def main():
     print(f"\nsRGB (raw):     {rgb}")
     print(f"sRGB (clipped): {rgb_clipped}")
     print(f"Hex:            {colour.notation.RGB_to_HEX(rgb_clipped)}")
+    x, y = spectrum_to_XY(total_spectrum)
+    print(f"xy: ({x:.3f}, {y:.3f})")
 
     plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped)
 
