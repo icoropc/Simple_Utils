@@ -16,9 +16,9 @@ import colour
 # Gaussian component definitions: (relative amplitude, FWHM [nm], peak [nm])
 # ---------------------------------------------------------------------------
 components = [
-    {"amplitude": 1.0, "fwhm": 4.0, "peak": 455.0},  # blue
-    {"amplitude": 0.01, "fwhm": 30.0, "peak": 540.0},  # green
-    {"amplitude": 0.01, "fwhm": 30.0, "peak": 630.0},  # red
+    {"amplitude": 1.0, "fwhm": 4.0, "peak": 462.0},  # blue
+    {"amplitude": 0.000, "fwhm": 30.0, "peak": 540.0},  # green
+    {"amplitude": 0.000, "fwhm": 30.0, "peak": 630.0},  # red
 ]
 
 SHAPE = colour.SpectralShape(380, 780, 1)
@@ -42,7 +42,14 @@ def build_spectrum(components, wavelengths):
 
 
 def spectrum_to_rgb(values, wavelengths, illuminant_sd=None):
-    """Convert a spectral power distribution to sRGB (0-1 clipped)."""
+    """Convert a self-luminous spectral power distribution to sRGB (0-1 clipped).
+
+    The modelled spectrum is emitted (e.g. an LED), not reflected, so it
+    must not be re-weighted by a real-world illuminant like D65 - that
+    would treat the LED as a reflective sample lit by a second light
+    source. The default illuminant is therefore CIE Illuminant E
+    (equal-energy), which leaves the spectrum's shape untouched.
+    """
     sd = colour.SpectralDistribution(
         dict(zip(wavelengths, values)), name="Modelled spectrum"
     )
@@ -51,13 +58,13 @@ def spectrum_to_rgb(values, wavelengths, illuminant_sd=None):
     illuminant = (
         illuminant_sd
         if illuminant_sd is not None
-        else colour.SDS_ILLUMINANTS["D65"]
+        else colour.SDS_ILLUMINANTS["E"]
     )
 
     XYZ = colour.sd_to_XYZ(sd, cmfs, illuminant) / 100.0
     illuminant_xy = colour.CCS_ILLUMINANTS[
         "CIE 1931 2 Degree Standard Observer"
-    ]["D65"]
+    ]["E"]
 
     RGB = colour.XYZ_to_sRGB(XYZ, illuminant_xy)
     RGB_normalized = np.clip(RGB / np.max(RGB), 0.0, 1.0)
