@@ -9,17 +9,18 @@ Created on Fri Jul  3 10:00:10 2026
 """
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import colour
 
 # ---------------------------------------------------------------------------
 # Gaussian component definitions: (relative amplitude, FWHM [nm], peak [nm])
 # ---------------------------------------------------------------------------
-components = [
-    {"amplitude": 1.0, "fwhm": 4.0, "peak": 462.0},  # blue
-    {"amplitude": 0.000, "fwhm": 30.0, "peak": 540.0},  # green
-    {"amplitude": 0.000, "fwhm": 30.0, "peak": 630.0},  # red
-]
+components = {
+    "blue_spectrum": {"amplitude": 1.0, "fwhm": 4.0, "peak": 457.0},
+    "green_spectrum": {"amplitude": 0.6, "fwhm": 40.0, "peak": 540.0},
+    "red_spectrum": {"amplitude": 0.6, "fwhm": 40.0, "peak": 630.0},
+}
 
 SHAPE = colour.SpectralShape(380, 780, 1)
 wavelengths = SHAPE.wavelengths
@@ -32,13 +33,18 @@ def gaussian(wavelengths, amplitude, fwhm, peak):
 
 
 def build_spectrum(components, wavelengths):
-    """Return the individual component arrays and their summed spectrum."""
-    component_values = [
-        gaussian(wavelengths, c["amplitude"], c["fwhm"], c["peak"])
-        for c in components
-    ]
-    total = np.sum(component_values, axis=0)
-    return component_values, total
+    """Return each component as a named pandas Series and their summed spectrum."""
+    spectra = {
+        name: pd.Series(
+            gaussian(wavelengths, c["amplitude"], c["fwhm"], c["peak"]),
+            index=wavelengths,
+            name=name,
+        )
+        for name, c in components.items()
+    }
+    total_spectrum = sum(spectra.values())
+    total_spectrum.name = "total_spectrum"
+    return spectra, total_spectrum
 
 
 def spectrum_to_rgb(values, wavelengths, illuminant_sd=None):
@@ -72,23 +78,22 @@ def spectrum_to_rgb(values, wavelengths, illuminant_sd=None):
     return RGB, RGB_normalized, sd
 
 
-def plot_result(wavelengths, component_values, total, rgb, rgb_clipped):
+def plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped):
     fig, (ax_spectrum, ax_swatch) = plt.subplots(
         1, 2, figsize=(13, 5), gridspec_kw={"width_ratios": [3, 1]}
     )
 
-    colors = ["tab:blue", "tab:green", "tab:red"]
-    for values, comp, color in zip(component_values, components, colors):
+    for name, spectrum in spectra.items():
+        color = f"tab:{name.split('_')[0]}"
         ax_spectrum.plot(
-            wavelengths,
-            values,
+            spectrum,
             "--",
             color=color,
             linewidth=1.5
         )
 
     ax_spectrum.plot(
-        wavelengths, total, color="black", linewidth=2.5, label="Total spectrum"
+        total_spectrum, color="black", linewidth=2.5, label="Total spectrum"
     )
     ax_spectrum.set_xlabel("Wavelength (nm)")
     ax_spectrum.set_ylabel("Relative power")
@@ -115,15 +120,18 @@ def plot_result(wavelengths, component_values, total, rgb, rgb_clipped):
 
 
 def main():
-    component_values, total = build_spectrum(components, wavelengths)
-    rgb, rgb_clipped, sd = spectrum_to_rgb(total, wavelengths)
+    spectra, total_spectrum = build_spectrum(components, wavelengths)
+    red_spectrum = spectra["red_spectrum"]
+    green_spectrum = spectra["green_spectrum"]
+    blue_spectrum = spectra["blue_spectrum"]
 
+    rgb, rgb_clipped, sd = spectrum_to_rgb(total_spectrum, wavelengths)
 
     print(f"\nsRGB (raw):     {rgb}")
     print(f"sRGB (clipped): {rgb_clipped}")
     print(f"Hex:            {colour.notation.RGB_to_HEX(rgb_clipped)}")
 
-    plot_result(wavelengths, component_values, total, rgb, rgb_clipped)
+    plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped)
 
 
 if __name__ == "__main__":
