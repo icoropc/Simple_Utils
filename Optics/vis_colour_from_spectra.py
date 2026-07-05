@@ -18,9 +18,9 @@ from spectrum_to_XY import spectrum_to_XY
 # Gaussian component definitions: (relative amplitude, FWHM [nm], peak [nm])
 # ---------------------------------------------------------------------------
 components = {
-    "blue_spectrum": {"amplitude": 1.0, "fwhm": 4.0, "peak": 457.0},
-    "green_spectrum": {"amplitude": 0.6, "fwhm": 40.0, "peak": 540.0},
-    "red_spectrum": {"amplitude": 0.6, "fwhm": 40.0, "peak": 630.0},
+    "blue_spectrum_features": {"amplitude": 1.0, "fwhm": 5.0, "peak": 465.0},
+    "green_spectrum_features": {"amplitude": 0.00, "fwhm": 40.0, "peak": 540.0},
+    "red_spectrum_features": {"amplitude": 0.00, "fwhm": 40.0, "peak": 630.0},
 }
 
 SHAPE = colour.SpectralShape(380, 780, 1)
@@ -34,17 +34,16 @@ def gaussian(wavelengths, amplitude, fwhm, peak):
 
 
 def build_spectrum(components, wavelengths):
-    """Return each component as a named pandas Series and their summed spectrum."""
-    spectra = {
-        name: pd.Series(
-            gaussian(wavelengths, c["amplitude"], c["fwhm"], c["peak"]),
-            index=wavelengths,
-            name=name,
-        )
-        for name, c in components.items()
-    }
-    total_spectrum = sum(spectra.values())
-    total_spectrum.name = "total_spectrum"
+    """Return each component and their summed spectrum as columns of one DataFrame."""
+    spectra = pd.DataFrame(
+        {
+            name: gaussian(wavelengths, c["amplitude"], c["fwhm"], c["peak"])
+            for name, c in components.items()
+        },
+        index=wavelengths,
+    )
+    spectra["total_spectrum"] = spectra.sum(axis=1)
+    total_spectrum = spectra["total_spectrum"]
     return spectra, total_spectrum
 
 
@@ -84,7 +83,7 @@ def plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped):
         1, 2, figsize=(13, 5), gridspec_kw={"width_ratios": [3, 1]}
     )
 
-    for name, spectrum in spectra.items():
+    for name, spectrum in spectra.drop(columns="total_spectrum").items():
         color = f"tab:{name.split('_')[0]}"
         ax_spectrum.plot(
             spectrum,
@@ -122,9 +121,6 @@ def plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped):
 
 def main():
     spectra, total_spectrum = build_spectrum(components, wavelengths)
-    red_spectrum = spectra["red_spectrum"]
-    green_spectrum = spectra["green_spectrum"]
-    blue_spectrum = spectra["blue_spectrum"]
 
     rgb, rgb_clipped, sd = spectrum_to_rgb(total_spectrum, wavelengths)
 
