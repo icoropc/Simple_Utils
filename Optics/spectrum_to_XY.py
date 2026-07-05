@@ -14,8 +14,8 @@ def spectrum_to_XY(spectrum):
 
     Parameters
     ----------
-    spectrum : pandas.Series
-        Spectral power distribution of an emissive source, indexed by
+    spectrum : pandas.Series 
+        Spectrum of an emissive source, indexed by
         wavelength (nm).
 
     Returns
