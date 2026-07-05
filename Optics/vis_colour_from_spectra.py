@@ -43,8 +43,7 @@ def build_spectrum(components, wavelengths):
         index=wavelengths,
     )
     spectra["total_spectrum"] = spectra.sum(axis=1)
-    total_spectrum = spectra["total_spectrum"]
-    return spectra, total_spectrum
+    return spectra
 
 
 def spectrum_to_rgb(values, wavelengths, illuminant_sd=None):
@@ -78,7 +77,7 @@ def spectrum_to_rgb(values, wavelengths, illuminant_sd=None):
     return RGB, RGB_normalized, sd
 
 
-def plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped):
+def plot_result(wavelengths, spectra, rgb, rgb_clipped):
     fig, (ax_spectrum, ax_swatch) = plt.subplots(
         1, 2, figsize=(13, 5), gridspec_kw={"width_ratios": [3, 1]}
     )
@@ -93,7 +92,7 @@ def plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped):
         )
 
     ax_spectrum.plot(
-        total_spectrum, color="black", linewidth=2.5, label="Total spectrum"
+        spectra["total_spectrum"], color="black", linewidth=2.5, label="Total spectrum"
     )
     ax_spectrum.set_xlabel("Wavelength (nm)")
     ax_spectrum.set_ylabel("Relative power")
@@ -120,17 +119,17 @@ def plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped):
 
 
 def main():
-    spectra, total_spectrum = build_spectrum(components, wavelengths)
+    spectra = build_spectrum(components, wavelengths)
 
-    rgb, rgb_clipped, sd = spectrum_to_rgb(total_spectrum, wavelengths)
+    rgb, rgb_clipped, sd = spectrum_to_rgb(spectra["total_spectrum"], wavelengths)
 
     print(f"\nsRGB (raw):     {rgb}")
     print(f"sRGB (clipped): {rgb_clipped}")
     print(f"Hex:            {colour.notation.RGB_to_HEX(rgb_clipped)}")
-    x, y = spectrum_to_XY(total_spectrum)
+    x, y = spectrum_to_XY(spectra["total_spectrum"])
     print(f"xy: ({x:.3f}, {y:.3f})")
 
-    plot_result(wavelengths, spectra, total_spectrum, rgb, rgb_clipped)
+    plot_result(wavelengths, spectra, rgb, rgb_clipped)
 
 
 if __name__ == "__main__":
